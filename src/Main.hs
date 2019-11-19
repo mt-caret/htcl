@@ -18,6 +18,7 @@ data Token
   | Comment T.Text
   | Word T.Text
   | BraceWord T.Text
+  | BracketWord [Token]
   deriving (Eq, Show)
 
 seperator :: Parser Token
@@ -70,12 +71,16 @@ matchedBraces = do
 braceWord :: Parser Token
 braceWord = BraceWord . T.pack <$> matchedBraces
 
+bracketWord :: Parser Token
+bracketWord = BracketWord <$> (MP.char '[' *> tcl <* MP.char ']')
+
 tcl :: Parser [Token]
-tcl =
-  (MP.choice [seperator, comment, word, braceWord] `MP.sepEndBy` MP.space)
-    <* MP.eof
+tcl = MP.choice [seperator, comment, word, braceWord] `MP.sepEndBy` MP.space
+
+tclProgram :: Parser [Token]
+tclProgram = tcl <* MP.eof
 
 main :: IO ()
 main = do
   input <- T.pack <$> getContents
-  MP.parseTest tcl input
+  MP.parseTest tclProgram input
