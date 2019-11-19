@@ -72,7 +72,7 @@ braceWord :: Parser Token
 braceWord = BraceWord . T.pack <$> matchedBraces
 
 bracketWord :: Parser Token
-bracketWord = BracketWord <$> (MP.char '[' *> tcl <* MP.char ']')
+bracketWord = BracketWord <$> MP.between (MP.char '[') (MP.char ']') tcl
 
 tcl :: Parser [Token]
 tcl = MP.choice [seperator, comment, word, braceWord] `MP.sepEndBy` MP.space
