@@ -56,7 +56,7 @@ word = Word <$> MP.choice [stringWord, regularWord]
 
 matchedBraces :: Parser String
 matchedBraces = do
-  _    <- MP.char '{'
+  void $ MP.char '{'
   l    <- nonbrace
   rest <- concat <$> MP.many
     (do
@@ -64,7 +64,7 @@ matchedBraces = do
       rest  <- nonbrace
       return $ "{" ++ inner ++ "}" ++ rest
     )
-  _ <- MP.char '}'
+  void $ MP.char '}'
   return $ l ++ rest
   where nonbrace = MP.many (MP.noneOf ['{', '}'])
 
@@ -74,8 +74,11 @@ braceWord = BraceWord . T.pack <$> matchedBraces
 bracketWord :: Parser Token
 bracketWord = BracketWord <$> MP.between (MP.char '[') (MP.char ']') tcl
 
+whitespace :: Parser ()
+whitespace = MP.hidden MP.space
+
 tcl :: Parser [Token]
-tcl = MP.choice [seperator, comment, word, braceWord] `MP.sepEndBy` MP.space
+tcl = MP.choice [seperator, comment, word, braceWord] `MP.sepEndBy` whitespace
 
 tclProgram :: Parser [Token]
 tclProgram = tcl <* MP.eof
