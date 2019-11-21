@@ -23,7 +23,11 @@ data Token
 
 seperator :: Parser Token
 seperator =
-  MP.choice [MP.eol $> '\r', MP.char ';'] $> Separator <?> "command seperator"
+  (<?> "command seperator")
+    . ($> Separator)
+    . MP.some
+    . MP.choice
+    $ [MP.eol $> '\r', MP.char ';']
 
 comment :: Parser Token
 comment =
@@ -74,8 +78,11 @@ braceWord = BraceWord . T.pack <$> matchedBraces
 bracketWord :: Parser Token
 bracketWord = BracketWord <$> MP.between (MP.char '[') (MP.char ']') tcl
 
+-- TODO: does this cover all whitespace characters?
 whitespace :: Parser ()
-whitespace = MP.hidden MP.space
+whitespace = MP.hidden . ($> ()) . MP.many . MP.oneOf $ [' ', '\t']
+--whitespace :: Parser ()
+--whitespace = MP.hidden MP.space
 
 tcl :: Parser [Token]
 tcl = MP.choice [seperator, comment, word, braceWord] `MP.sepEndBy` whitespace
@@ -83,5 +90,10 @@ tcl = MP.choice [seperator, comment, word, braceWord] `MP.sepEndBy` whitespace
 tclProgram :: Parser [Token]
 tclProgram = tcl <* MP.eof
 
-tokenize :: T.Text -> IO ()
-tokenize = MP.parseTest tclProgram
+tokenize
+  :: String -> T.Text -> Either (MP.ParseErrorBundle T.Text V.Void) [Token]
+tokenize = MP.parse tclProgram
+
+printResult :: Either (MP.ParseErrorBundle T.Text V.Void) [Token] -> IO ()
+printResult (Left  error ) = putStrLn $ MP.errorBundlePretty error
+printResult (Right tokens) = mapM_ print tokens

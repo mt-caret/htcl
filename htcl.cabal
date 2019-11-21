@@ -20,4 +20,6 @@ executable htcl
   build-depends:       base >= 4.7 && < 5
                      , megaparsec
                      , text
+                     , split
   other-modules:       Tokenizer
+                     , Parser
