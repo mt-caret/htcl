@@ -28,7 +28,9 @@ toAstToken (Tokenizer.BracketWord tokens) =
   fmap BracketWord . NE.nonEmpty <$> parseTokens tokens
 
 parseTokens :: [Tokenizer.Token] -> Either String [Command]
-parseTokens = mapM toAst . S.endBy [Tokenizer.Separator]
+parseTokens =
+  mapM toAst . filter (not . null) . fmap (filter Tokenizer.isWord) . S.endBy
+    [Tokenizer.Separator]
  where
   toAst :: [Tokenizer.Token] -> Either String Command
   toAst tokens = do

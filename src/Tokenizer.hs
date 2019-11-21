@@ -49,6 +49,12 @@ wordChar =
       , MP.char '-'
       , MP.char '.'
       , MP.char '$'
+      , MP.char '\''
+      , MP.char '>'
+      , MP.char '<'
+      , MP.char '+'
+      , MP.char '*'
+      , MP.char '?'
       ]
     <?> "valid word character"
 
@@ -97,3 +103,10 @@ tokenize = MP.parse tclProgram
 printResult :: Either (MP.ParseErrorBundle T.Text V.Void) [Token] -> IO ()
 printResult (Left  error ) = putStrLn $ MP.errorBundlePretty error
 printResult (Right tokens) = mapM_ print tokens
+
+isWord :: Token -> Bool
+isWord Separator       = False
+isWord (Comment     _) = False
+isWord (Word        _) = True
+isWord (BraceWord   _) = True
+isWord (BracketWord _) = True
